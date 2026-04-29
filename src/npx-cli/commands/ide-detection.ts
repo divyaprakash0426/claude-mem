@@ -92,9 +92,9 @@ export function detectInstalledIDEs(): IDEInfo[] {
     {
       id: 'copilot-cli',
       label: 'Copilot CLI',
-      detected: isCommandInPath('copilot'),
+      detected: existsSync(join(home, '.copilot')) || isCommandInPath('copilot'),
       supported: true,
-      hint: 'MCP-based integration',
+      hint: 'transcript + hook + MCP integration',
     },
     {
       id: 'antigravity',

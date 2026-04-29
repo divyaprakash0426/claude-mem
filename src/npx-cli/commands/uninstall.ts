@@ -277,6 +277,10 @@ export async function runUninstallCommand(): Promise<void> {
       const { uninstallCodexCli } = await import('../../services/integrations/CodexCliInstaller.js');
       return uninstallCodexCli();
     }},
+    { label: 'Copilot CLI', fn: async () => {
+      const { uninstallCopilotCli } = await import('../../services/integrations/CopilotCliInstaller.js');
+      return uninstallCopilotCli();
+    }},
   ];
 
   for (const { label, fn } of ideCleanups) {

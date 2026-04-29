@@ -39,7 +39,7 @@ function writeMcpJsonConfig(
   writeFileSync(configFilePath, JSON.stringify(existingConfig, null, 2) + '\n');
 }
 
-interface McpInstallerConfig {
+export interface McpInstallerConfig {
   ideId: string;
   ideLabel: string;
   configPath: string;
@@ -119,16 +119,60 @@ function writeMcpConfigAndContext(
   console.log(summaryLines.join('\n'));
 }
 
-const COPILOT_CLI_CONFIG: McpInstallerConfig = {
+// ============================================================================
+// Factory Configs for JSON-based IDEs
+// ============================================================================
+
+/**
+ * GitHub Copilot CLI MCP config.
+ *
+ * Note: `contextFile` is intentionally omitted here. Copilot CLI now uses a
+ * dedicated transcript-watching + SessionStart hook integration in
+ * CopilotCliInstaller.ts which owns context injection. This config is exported
+ * for that installer to reuse the MCP config writer.
+ *
+ * Path/key history:
+ *   - Old (broken): ~/.github/copilot/mcp.json with key 'servers'
+ *   - Correct:      ~/.copilot/mcp-config.json with key 'mcpServers'
+ */
+export const COPILOT_CLI_CONFIG: McpInstallerConfig = {
   ideId: 'copilot-cli',
   ideLabel: 'Copilot CLI',
-  configPath: path.join(homedir(), '.github', 'copilot', 'mcp.json'),
-  configKey: 'servers',
-  contextFile: {
-    path: path.join(process.cwd(), '.github', 'copilot-instructions.md'),
-    isWorkspaceRelative: true,
-  },
+  configPath: path.join(homedir(), '.copilot', 'mcp-config.json'),
+  configKey: 'mcpServers',
 };
+
+/**
+ * Legacy/broken Copilot CLI MCP config path (used by versions <= 12.4.8 of this
+ * package). Exported so the Copilot CLI uninstaller can clean it up on machines
+ * that ran the old broken installer.
+ */
+export const LEGACY_COPILOT_CLI_MCP_CONFIG_PATH = path.join(homedir(), '.github', 'copilot', 'mcp.json');
+
+/**
+ * Low-level MCP JSON writer, exported so other installers (e.g.
+ * CopilotCliInstaller) can reuse the merge-and-write logic without inheriting
+ * the "MCP-only" user-facing summary printed by `installMcpIntegration`.
+ */
+export function writeMcpJsonConfigPublic(
+  configFilePath: string,
+  configKey: 'servers' | 'mcpServers' = 'mcpServers',
+): number {
+  const mcpServerPath = findMcpServerPath();
+  if (!mcpServerPath) {
+    console.error('Could not find MCP server script');
+    console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/mcp-server.cjs');
+    return 1;
+  }
+  try {
+    writeMcpJsonConfig(configFilePath, mcpServerPath, configKey);
+    return 0;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Failed to write MCP config at ${configFilePath}: ${message}`);
+    return 1;
+  }
+}
 
 const ANTIGRAVITY_CONFIG: McpInstallerConfig = {
   ideId: 'antigravity',
@@ -268,7 +312,8 @@ Next steps:
 }
 
 export const MCP_IDE_INSTALLERS: Record<string, () => Promise<number>> = {
-  'copilot-cli': installMcpIntegration(COPILOT_CLI_CONFIG),
+  // 'copilot-cli' intentionally omitted: handled by CopilotCliInstaller.ts,
+  // which provides a hybrid transcript + hook + MCP integration.
   'antigravity': installMcpIntegration(ANTIGRAVITY_CONFIG),
   'goose': installGooseMcpIntegration,
   'roo-code': installMcpIntegration(ROO_CODE_CONFIG),

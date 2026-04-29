@@ -257,7 +257,23 @@ function makeIDETask(ideId: string, failedIDEs: string[], pendingErrors: string[
       };
     }
 
-    case 'copilot-cli':
+    case 'copilot-cli': {
+      return {
+        title: 'Copilot CLI: configuring transcript watching, hook, and MCP',
+        task: async (message) => {
+          message('Loading Copilot CLI installer…');
+          const { installCopilotCli } = await import('../../services/integrations/CopilotCliInstaller.js');
+          message('Configuring transcript watching, hook, and MCP…');
+          const { result, output } = await bufferConsole(() => installCopilotCli());
+          if (result !== 0) {
+            recordFailure('Copilot CLI: integration setup failed', output);
+            return `Copilot CLI: integration setup failed ${pc.red('FAIL')}`;
+          }
+          return `Copilot CLI: transcript watching, hook, and MCP configured ${pc.green('OK')}`;
+        },
+      };
+    }
+
     case 'antigravity':
     case 'goose':
     case 'roo-code':

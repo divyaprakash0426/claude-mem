@@ -138,6 +138,18 @@ Or install for Gemini CLI (auto-detects `~/.gemini`):
 ```bash
 npx claude-mem install --ide gemini-cli
 ```
+Or install for Codex CLI (auto-detects `~/.codex`):
+
+```bash
+npx claude-mem install --ide codex-cli
+```
+
+Or install for GitHub Copilot CLI (auto-detects `~/.copilot`):
+
+```bash
+npx claude-mem install --ide copilot-cli
+```
+
 Or install for OpenCode:
 
 ```bash
@@ -152,7 +164,7 @@ Or install from the plugin marketplace inside Claude Code:
 /plugin install claude-mem
 ```
 
-Restart Claude Code or Gemini CLI. Context from previous sessions will automatically appear in new sessions.
+Restart Claude Code, Gemini CLI, or Copilot CLI. Context from previous sessions will automatically appear in new sessions.
 
 > **Note:** Claude-Mem is also published on npm, but `npm install -g claude-mem` installs the **SDK/library only** — it does not register the plugin hooks or set up the worker service. Always install via `npx claude-mem install` or the `/plugin` commands above.
 
